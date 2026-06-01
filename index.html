@@ -173,30 +173,39 @@
   /* Overlays cirúrgicos — bloqueiam só os botões do YouTube, não o vídeo */
   .player-overlay { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
 
-  /* Canto superior esquerdo — logo do YouTube */
+  /* Canto superior esquerdo — avatar + nome do canal (leva ao YouTube) */
   .player-block-tl {
     position: absolute; top: 0; left: 0;
-    width: 120px; height: 52px; z-index: 11;
+    width: 55%; height: 14%; z-index: 11;
     pointer-events: all; cursor: default;
     background: transparent;
   }
-  /* Canto superior direito — botão "Assistir no YouTube" ao hover */
+  /* Canto superior direito — ícones de áudio/CC/config que aparecem no topo */
   .player-block-tr {
     position: absolute; top: 0; right: 0;
-    width: 220px; height: 52px; z-index: 11;
+    width: 20%; height: 14%; z-index: 11;
     pointer-events: all; cursor: default;
     background: transparent;
   }
-  /* Canto inferior direito — botões de compartilhar e "ir para YouTube" na barra de controles */
+  /* Barra inferior inteira — cobre toda a faixa de controles do YouTube */
+  /* exceto a barra de progresso e controles centrais */
+  /* Canto inferior esquerdo — botão compartilhar */
+  .player-block-bl {
+    position: absolute; bottom: 0; left: 0;
+    width: 12%; height: 16%; z-index: 11;
+    pointer-events: all; cursor: default;
+    background: transparent;
+  }
+  /* Canto inferior direito — logo YouTube + fullscreen */
   .player-block-br {
     position: absolute; bottom: 0; right: 0;
-    width: 120px; height: 46px; z-index: 11;
+    width: 22%; height: 16%; z-index: 11;
     pointer-events: all; cursor: default;
     background: transparent;
   }
-  /* Marca d'água discreta no canto inferior direito */
+  /* Marca d'água discreta */
   .player-watermark {
-    position: absolute; bottom: 52px; right: 10px; z-index: 12;
+    position: absolute; bottom: 18%; right: 1%; z-index: 12;
     background: rgba(0,0,0,.55); color: rgba(255,255,255,.45);
     font-size: 10px; padding: 3px 8px; border-radius: 4px;
     pointer-events: none; letter-spacing: .02em;
@@ -631,6 +640,7 @@ function renderPlayer() {
           <div class="player-overlay" id="player-overlay">
             <div class="player-block-tl"></div>
             <div class="player-block-tr"></div>
+            <div class="player-block-bl"></div>
             <div class="player-block-br"></div>
             <div class="player-watermark">Direitos reservados — Blitz Concursos</div>
           </div>
@@ -926,7 +936,7 @@ document.addEventListener('contextmenu', e => {
 
 // Bloqueia os blocos de overlay de abrir links ao clicar
 document.addEventListener('click', e => {
-  const blocked = e.target.closest('.player-block-tl, .player-block-tr, .player-block-br');
+  const blocked = e.target.closest('.player-block-tl, .player-block-tr, .player-block-bl, .player-block-br');
   if (blocked) { e.preventDefault(); e.stopPropagation(); }
 });
 </script>
