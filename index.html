@@ -170,16 +170,36 @@
     margin-bottom: 20px;
   }
   .player-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .player-overlay {
-    position: absolute; inset: 0; z-index: 10;
-    cursor: default;
+  /* Overlays cirúrgicos — bloqueiam só os botões do YouTube, não o vídeo */
+  .player-overlay { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
+
+  /* Canto superior esquerdo — logo do YouTube */
+  .player-block-tl {
+    position: absolute; top: 0; left: 0;
+    width: 120px; height: 52px; z-index: 11;
+    pointer-events: all; cursor: default;
+    background: transparent;
   }
-  .player-overlay::after {
-    content: 'Direitos reservados — Blitz Concursos';
-    position: absolute; bottom: 12px; right: 12px;
-    background: rgba(0,0,0,.6); color: rgba(255,255,255,.5);
-    font-size: 11px; padding: 4px 10px; border-radius: 4px;
-    pointer-events: none;
+  /* Canto superior direito — botão "Assistir no YouTube" ao hover */
+  .player-block-tr {
+    position: absolute; top: 0; right: 0;
+    width: 220px; height: 52px; z-index: 11;
+    pointer-events: all; cursor: default;
+    background: transparent;
+  }
+  /* Canto inferior direito — botões de compartilhar e "ir para YouTube" na barra de controles */
+  .player-block-br {
+    position: absolute; bottom: 0; right: 0;
+    width: 120px; height: 46px; z-index: 11;
+    pointer-events: all; cursor: default;
+    background: transparent;
+  }
+  /* Marca d'água discreta no canto inferior direito */
+  .player-watermark {
+    position: absolute; bottom: 52px; right: 10px; z-index: 12;
+    background: rgba(0,0,0,.55); color: rgba(255,255,255,.45);
+    font-size: 10px; padding: 3px 8px; border-radius: 4px;
+    pointer-events: none; letter-spacing: .02em;
   }
   .lesson-list { display: flex; flex-direction: column; gap: 8px; }
   .lesson-item {
@@ -608,7 +628,12 @@ function renderPlayer() {
             allow="autoplay; encrypted-media"
             allowfullscreen>
           </iframe>
-          <div class="player-overlay" id="player-overlay"></div>
+          <div class="player-overlay" id="player-overlay">
+            <div class="player-block-tl"></div>
+            <div class="player-block-tr"></div>
+            <div class="player-block-br"></div>
+            <div class="player-watermark">Direitos reservados — Blitz Concursos</div>
+          </div>
         </div>
         <div style="margin-bottom:8px">
           <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;margin-bottom:4px">${aula.titulo}</div>
@@ -894,9 +919,15 @@ document.querySelectorAll('.modal-backdrop').forEach(m => {
   m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
 });
 
-// Proteção básica: desabilitar menu de contexto na área do player
+// Proteção: bloqueia clique direito em toda a área do player
 document.addEventListener('contextmenu', e => {
-  if (e.target.closest('#yt-player') || e.target.closest('.player-wrap')) e.preventDefault();
+  if (e.target.closest('.player-wrap')) e.preventDefault();
+});
+
+// Bloqueia os blocos de overlay de abrir links ao clicar
+document.addEventListener('click', e => {
+  const blocked = e.target.closest('.player-block-tl, .player-block-tr, .player-block-br');
+  if (blocked) { e.preventDefault(); e.stopPropagation(); }
 });
 </script>
 </body>
