@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blitz Concursos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #12151c;
+    --surface2: #1a1e28;
+    --border: #242836;
+    --accent: #f5a623;
+    --accent2: #e8395a;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --success: #22c55e;
+    --radius: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* ── LOGIN ── */
+  #login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at 20% 50%, #1a1228 0%, var(--bg) 60%),
+                radial-gradient(ellipse at 80% 20%, #0f1a2e 0%, transparent 50%);
+  }
+  .login-box {
+    width: 420px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 48px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .login-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+  }
+  .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 28px; margin-bottom: 8px; }
+  .logo span { color: var(--accent); }
+  .login-sub { color: var(--muted); font-size: 14px; margin-bottom: 36px; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 12px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+  .field input {
+    width: 100%; padding: 12px 16px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text); font-family: inherit; font-size: 15px;
+    outline: none; transition: border .2s;
+  }
+  .field input:focus { border-color: var(--accent); }
+  .role-toggle { display: flex; gap: 8px; margin-bottom: 24px; }
+  .role-btn {
+    flex: 1; padding: 10px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--muted); font-family: inherit; font-size: 13px;
+    cursor: pointer; transition: all .2s;
+  }
+  .role-btn.active { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 600; }
+  .btn-primary {
+    width: 100%; padding: 14px; background: var(--accent);
+    border: none; border-radius: var(--radius); color: #000;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px;
+    cursor: pointer; transition: opacity .2s;
+  }
+  .btn-primary:hover { opacity: .85; }
+  .login-hint { margin-top: 16px; font-size: 12px; color: var(--muted); text-align: center; }
+
+  /* ── LAYOUT GERAL ── */
+  #app { display: none; min-height: 100vh; }
+  .sidebar {
+    width: 240px; background: var(--surface); border-right: 1px solid var(--border);
+    position: fixed; top: 0; left: 0; height: 100vh;
+    display: flex; flex-direction: column; padding: 24px 16px;
+  }
+  .sidebar-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; padding: 0 8px; margin-bottom: 32px; }
+  .sidebar-logo span { color: var(--accent); }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 8px; cursor: pointer;
+    font-size: 14px; color: var(--muted); transition: all .15s;
+    border: none; background: none; width: 100%; text-align: left;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: rgba(245,166,35,.12); color: var(--accent); font-weight: 500; }
+  .nav-icon { font-size: 16px; width: 20px; }
+  .sidebar-bottom { margin-top: auto; }
+  .user-chip {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 8px; background: var(--surface2);
+  }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: #000; flex-shrink: 0;
+  }
+  .user-info .name { font-size: 13px; font-weight: 500; }
+  .user-info .role { font-size: 11px; color: var(--muted); }
+  .main { margin-left: 240px; padding: 32px 36px; min-height: 100vh; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .page-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 24px; margin-bottom: 4px; }
+  .page-sub { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+
+  /* ── CARDS / GRID ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px 24px;
+  }
+  .stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+  .stat-val { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 700; }
+  .stat-val.orange { color: var(--accent); }
+  .stat-val.red { color: var(--accent2); }
+  .stat-val.green { color: var(--success); }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 24px;
+  }
+  .card-title { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 16px; margin-bottom: 16px; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+
+  /* ── TABLE ── */
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; padding: 8px 12px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; font-weight: 500; border-bottom: 1px solid var(--border); }
+  td { padding: 12px 12px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500;
+  }
+  .badge.green { background: rgba(34,197,94,.15); color: var(--success); }
+  .badge.red { background: rgba(232,57,90,.15); color: var(--accent2); }
+  .badge.orange { background: rgba(245,166,35,.15); color: var(--accent); }
+  .badge.blue { background: rgba(96,165,250,.15); color: #60a5fa; }
+
+  /* ── MÓDULOS / AULAS ── */
+  .modules-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .module-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden; cursor: pointer;
+    transition: transform .2s, border-color .2s;
+  }
+  .module-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+  .module-thumb {
+    height: 120px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px;
+  }
+  .module-body { padding: 16px; }
+  .module-name { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+  .module-meta { font-size: 12px; color: var(--muted); }
+  .progress-bar { height: 4px; background: var(--surface2); border-radius: 2px; margin-top: 12px; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; }
+
+  /* ── PLAYER ── */
+  .player-wrap {
+    position: relative; width: 100%; padding-bottom: 56.25%;
+    background: #000; border-radius: var(--radius); overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .player-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .player-overlay {
+    position: absolute; inset: 0; z-index: 10;
+    cursor: default;
+  }
+  .player-overlay::after {
+    content: 'Direitos reservados — Blitz Concursos';
+    position: absolute; bottom: 12px; right: 12px;
+    background: rgba(0,0,0,.6); color: rgba(255,255,255,.5);
+    font-size: 11px; padding: 4px 10px; border-radius: 4px;
+    pointer-events: none;
+  }
+  .lesson-list { display: flex; flex-direction: column; gap: 8px; }
+  .lesson-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; cursor: pointer; transition: border-color .15s;
+  }
+  .lesson-item:hover { border-color: var(--accent); }
+  .lesson-item.playing { border-color: var(--accent); background: rgba(245,166,35,.06); }
+  .lesson-num { width: 28px; height: 28px; border-radius: 50%; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--muted); flex-shrink: 0; }
+  .lesson-num.done { background: rgba(34,197,94,.15); color: var(--success); }
+  .lesson-info .title { font-size: 14px; font-weight: 500; }
+  .lesson-info .dur { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .pdf-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; background: rgba(96,165,250,.1); border: 1px solid rgba(96,165,250,.2);
+    border-radius: 6px; color: #60a5fa; font-size: 12px; cursor: pointer;
+    margin-left: auto; text-decoration: none; flex-shrink: 0;
+  }
+
+  /* ── ADMIN FORMS ── */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .admin-field { margin-bottom: 16px; }
+  .admin-field label { display: block; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+  .admin-field input, .admin-field select, .admin-field textarea {
+    width: 100%; padding: 10px 14px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-family: inherit; font-size: 14px; outline: none;
+    transition: border .2s;
+  }
+  .admin-field input:focus, .admin-field select:focus, .admin-field textarea:focus { border-color: var(--accent); }
+  .admin-field textarea { resize: vertical; min-height: 80px; }
+  .btn-sm {
+    padding: 8px 16px; border: none; border-radius: 8px;
+    font-family: inherit; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: opacity .2s;
+  }
+  .btn-sm:hover { opacity: .8; }
+  .btn-sm.primary { background: var(--accent); color: #000; }
+  .btn-sm.danger { background: rgba(232,57,90,.15); color: var(--accent2); border: 1px solid rgba(232,57,90,.3); }
+  .btn-sm.ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .action-bar { display: flex; gap: 8px; }
+
+  /* ── TURMAS ── */
+  .turma-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .turma-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px;
+  }
+  .turma-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+  .turma-meta { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+  .turma-stat { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .turma-stat:last-child { border-bottom: none; }
+
+  /* ── MODAL ── */
+  .modal-backdrop {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.7); z-index: 100;
+    align-items: center; justify-content: center;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 32px; width: 520px; max-height: 80vh; overflow-y: auto;
+    position: relative;
+  }
+  .modal-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; margin-bottom: 20px; }
+  .modal-close {
+    position: absolute; top: 16px; right: 16px;
+    background: var(--surface2); border: none; color: var(--muted);
+    width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 16px;
+  }
+  .tabs { display: flex; gap: 4px; background: var(--surface2); padding: 4px; border-radius: 10px; margin-bottom: 24px; }
+  .tab { flex: 1; padding: 8px; text-align: center; border-radius: 7px; font-size: 13px; cursor: pointer; color: var(--muted); border: none; background: none; font-family: inherit; transition: all .15s; }
+  .tab.active { background: var(--surface); color: var(--text); font-weight: 500; }
+
+  .alert { padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
+  .alert.success { background: rgba(34,197,94,.1); color: var(--success); border: 1px solid rgba(34,197,94,.2); }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .page.active { animation: fadeIn .2s ease; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="logo">BLITZ <span>CONCURSOS</span></div>
+    <div class="login-sub">Acesse sua área de estudos</div>
+    <div class="role-toggle">
+      <button class="role-btn active" onclick="setRole('aluno')">👨‍🎓 Aluno</button>
+      <button class="role-btn" onclick="setRole('admin')">⚙️ Admin</button>
+    </div>
+    <div class="field">
+      <label>E-mail</label>
+      <input type="email" id="login-email" placeholder="seu@email.com" value="joao@email.com">
+    </div>
+    <div class="field">
+      <label>Senha</label>
+      <input type="password" id="login-pass" placeholder="••••••••" value="123456">
+    </div>
+    <button class="btn-primary" onclick="doLogin()">Entrar</button>
+    <div class="login-hint">Demo: aluno → joao@email.com | admin → admin@blitz.com</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">BLITZ <span>CONCURSOS</span></div>
+    <nav id="nav-items"></nav>
+    <div class="sidebar-bottom">
+      <div class="user-chip">
+        <div class="avatar" id="user-avatar">JD</div>
+        <div class="user-info">
+          <div class="name" id="user-name">João</div>
+          <div class="role" id="user-role-label">Aluno</div>
+        </div>
+      </div>
+      <button class="nav-item" style="margin-top:8px;color:var(--accent2)" onclick="doLogout()">
+        <span class="nav-icon">→</span> Sair
+      </button>
+    </div>
+  </div>
+  <div class="main" id="main-content"></div>
+</div>
+
+<!-- MODAL NOVA AULA -->
+<div class="modal-backdrop" id="modal-aula">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-aula')">✕</button>
+    <div class="modal-title">Nova Aula</div>
+    <div class="admin-field">
+      <label>Módulo</label>
+      <select id="aula-modulo">
+        <option>Direito Constitucional</option>
+        <option>Direito Administrativo</option>
+        <option>Língua Portuguesa</option>
+        <option>Matemática</option>
+        <option>Raciocínio Lógico</option>
+        <option>Informática</option>
+      </select>
+    </div>
+    <div class="admin-field">
+      <label>Título da aula</label>
+      <input type="text" id="aula-titulo" placeholder="Ex: Princípios Constitucionais">
+    </div>
+    <div class="admin-field">
+      <label>Link do YouTube (não listado)</label>
+      <input type="text" id="aula-link" placeholder="https://youtu.be/...">
+    </div>
+    <div class="admin-field">
+      <label>Duração (ex: 1h 20min)</label>
+      <input type="text" id="aula-dur" placeholder="1h 20min">
+    </div>
+    <div class="admin-field">
+      <label>Link do PDF (Google Drive ou similar)</label>
+      <input type="text" id="aula-pdf" placeholder="https://drive.google.com/...">
+    </div>
+    <button class="btn-sm primary" onclick="salvarAula()" style="width:100%;padding:12px">Salvar Aula</button>
+  </div>
+</div>
+
+<!-- MODAL NOVO ALUNO -->
+<div class="modal-backdrop" id="modal-aluno">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-aluno')">✕</button>
+    <div class="modal-title">Cadastrar Aluno</div>
+    <div class="form-row">
+      <div class="admin-field">
+        <label>Nome completo</label>
+        <input type="text" id="aluno-nome" placeholder="Nome">
+      </div>
+      <div class="admin-field">
+        <label>E-mail</label>
+        <input type="text" id="aluno-email" placeholder="email@email.com">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="admin-field">
+        <label>Telefone</label>
+        <input type="text" id="aluno-tel" placeholder="(11) 99999-9999">
+      </div>
+      <div class="admin-field">
+        <label>Turma</label>
+        <select id="aluno-turma">
+          <option>Turma A – Manhã</option>
+          <option>Turma B – Noite</option>
+          <option>Turma Premium</option>
+        </select>
+      </div>
+    </div>
+    <div class="admin-field">
+      <label>Senha inicial</label>
+      <input type="text" id="aluno-senha" placeholder="Ex: 123456">
+    </div>
+    <button class="btn-sm primary" onclick="salvarAluno()" style="width:100%;padding:12px">Cadastrar</button>
+  </div>
+</div>
+
+<script>
+// ── DATA ──
+let currentRole = 'aluno';
+let currentUser = null;
+
+const DATA = {
+  turmas: [
+    { id: 1, nome: 'Turma A – Manhã', alunos: 28, inicio: 'Mar/2025', concurso: 'PCDF / PCGO', ativa: true },
+    { id: 2, nome: 'Turma B – Noite', alunos: 19, inicio: 'Abr/2025', concurso: 'TRF / TRT', ativa: true },
+    { id: 3, nome: 'Turma Premium', alunos: 8, inicio: 'Mai/2025', concurso: 'AGU / PGF', ativa: true },
+  ],
+  alunos: [
+    { id: 1, nome: 'João Duarte', email: 'joao@email.com', turma: 'Turma A – Manhã', status: 'Ativo', progresso: 68 },
+    { id: 2, nome: 'Maria Silva', email: 'maria@email.com', turma: 'Turma A – Manhã', status: 'Ativo', progresso: 85 },
+    { id: 3, nome: 'Carlos Mendes', email: 'carlos@email.com', turma: 'Turma B – Noite', status: 'Ativo', progresso: 42 },
+    { id: 4, nome: 'Ana Beatriz', email: 'ana@email.com', turma: 'Turma Premium', status: 'Ativo', progresso: 91 },
+    { id: 5, nome: 'Rafael Costa', email: 'rafael@email.com', turma: 'Turma B – Noite', status: 'Inativo', progresso: 15 },
+    { id: 6, nome: 'Fernanda Lima', email: 'fer@email.com', turma: 'Turma Premium', status: 'Ativo', progresso: 73 },
+  ],
+  modulos: [
+    { id: 1, nome: 'Direito Constitucional', icon: '⚖️', cor: '#f5a623', aulas: 12, concluidas: 8 },
+    { id: 2, nome: 'Direito Administrativo', icon: '📋', cor: '#e8395a', aulas: 9, concluidas: 5 },
+    { id: 3, nome: 'Língua Portuguesa', icon: '📝', cor: '#60a5fa', aulas: 8, concluidas: 8 },
+    { id: 4, nome: 'Matemática', icon: '🔢', cor: '#22c55e', aulas: 7, concluidas: 2 },
+    { id: 5, nome: 'Raciocínio Lógico', icon: '🧠', cor: '#a78bfa', aulas: 6, concluidas: 0 },
+    { id: 6, nome: 'Informática', icon: '💻', cor: '#fb923c', aulas: 5, concluidas: 1 },
+  ],
+  aulas: {
+    1: [
+      { id: 101, titulo: 'Princípios Fundamentais', dur: '1h 20min', ytId: 'P0WI-yb1lvY', pdf: true, feita: true },
+      { id: 102, titulo: 'Direitos e Garantias Fundamentais', dur: '1h 45min', ytId: 'P0WI-yb1lvY', pdf: true, feita: true },
+      { id: 103, titulo: 'Organização do Estado', dur: '2h 10min', ytId: 'P0WI-yb1lvY', pdf: false, feita: true },
+      { id: 104, titulo: 'Poder Legislativo', dur: '1h 35min', ytId: 'P0WI-yb1lvY', pdf: true, feita: true },
+      { id: 105, titulo: 'Poder Executivo', dur: '1h 50min', ytId: 'P0WI-yb1lvY', pdf: true, feita: false },
+      { id: 106, titulo: 'Poder Judiciário', dur: '1h 25min', ytId: 'P0WI-yb1lvY', pdf: false, feita: false },
+    ],
+    2: [
+      { id: 201, titulo: 'Introdução ao D. Administrativo', dur: '1h 15min', ytId: 'P0WI-yb1lvY', pdf: true, feita: true },
+      { id: 202, titulo: 'Princípios da Administração Pública', dur: '1h 40min', ytId: 'P0WI-yb1lvY', pdf: true, feita: false },
+    ],
+  }
+};
+
+let currentModulo = null;
+let currentAula = null;
+
+// ── LOGIN ──
+function setRole(r) {
+  currentRole = r;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  if (r === 'admin') {
+    document.getElementById('login-email').value = 'admin@blitz.com';
+  } else {
+    document.getElementById('login-email').value = 'joao@email.com';
+  }
+}
+
+function doLogin() {
+  const email = document.getElementById('login-email').value;
+  if (currentRole === 'admin') {
+    currentUser = { nome: 'Admin', initials: 'AD', role: 'Administrador' };
+  } else {
+    const a = DATA.alunos.find(x => x.email === email) || DATA.alunos[0];
+    currentUser = { nome: a.nome.split(' ')[0], initials: a.nome.split(' ').map(x=>x[0]).join('').slice(0,2), role: a.turma };
+  }
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('user-avatar').textContent = currentUser.initials;
+  document.getElementById('user-name').textContent = currentUser.nome;
+  document.getElementById('user-role-label').textContent = currentUser.role;
+  buildNav();
+  navigate(currentRole === 'admin' ? 'admin-dashboard' : 'aluno-inicio');
+}
+
+function doLogout() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+// ── NAV ──
+const ALUNO_NAV = [
+  { id: 'aluno-inicio', icon: '🏠', label: 'Início' },
+  { id: 'aluno-modulos', icon: '📚', label: 'Módulos' },
+  { id: 'aluno-agenda', icon: '📅', label: 'Agenda' },
+];
+const ADMIN_NAV = [
+  { id: 'admin-dashboard', icon: '📊', label: 'Dashboard' },
+  { id: 'admin-turmas', icon: '🏫', label: 'Turmas' },
+  { id: 'admin-alunos', icon: '👥', label: 'Alunos' },
+  { id: 'admin-aulas', icon: '🎬', label: 'Aulas' },
+];
+
+function buildNav() {
+  const items = currentRole === 'admin' ? ADMIN_NAV : ALUNO_NAV;
+  const nav = document.getElementById('nav-items');
+  nav.innerHTML = items.map(i => `
+    <button class="nav-item" id="nav-${i.id}" onclick="navigate('${i.id}')">
+      <span class="nav-icon">${i.icon}</span> ${i.label}
+    </button>
+  `).join('');
+}
+
+function navigate(page) {
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('nav-' + page);
+  if (btn) btn.classList.add('active');
+  renderPage(page);
+}
+
+// ── RENDER PAGES ──
+function renderPage(page) {
+  const main = document.getElementById('main-content');
+  let html = '';
+  switch(page) {
+    case 'aluno-inicio': html = renderAlunoInicio(); break;
+    case 'aluno-modulos': html = renderAlunoModulos(); break;
+    case 'aluno-player': html = renderPlayer(); break;
+    case 'aluno-agenda': html = renderAgenda(); break;
+    case 'admin-dashboard': html = renderAdminDash(); break;
+    case 'admin-turmas': html = renderAdminTurmas(); break;
+    case 'admin-alunos': html = renderAdminAlunos(); break;
+    case 'admin-aulas': html = renderAdminAulas(); break;
+  }
+  main.innerHTML = `<div class="page active">${html}</div>`;
+  if (page === 'aluno-modulos') attachModuloClicks();
+}
+
+// ── ALUNO: INÍCIO ──
+function renderAlunoInicio() {
+  const total = DATA.modulos.reduce((s,m) => s + m.aulas, 0);
+  const feitas = DATA.modulos.reduce((s,m) => s + m.concluidas, 0);
+  const pct = Math.round(feitas / total * 100);
+  const proxima = 'Poder Executivo — Direito Constitucional';
+  return `
+    <div class="page-title">Olá, ${currentUser.nome} 👋</div>
+    <div class="page-sub">Continue de onde parou. Bora passar!</div>
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card"><div class="stat-label">Progresso geral</div><div class="stat-val orange">${pct}%</div></div>
+      <div class="stat-card"><div class="stat-label">Aulas assistidas</div><div class="stat-val">${feitas}<span style="font-size:16px;color:var(--muted)">/${total}</span></div></div>
+      <div class="stat-card"><div class="stat-label">Módulos</div><div class="stat-val green">${DATA.modulos.length}</div></div>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title">▶ Continuar assistindo</div>
+      <div style="display:flex;align-items:center;gap:16px;background:var(--surface2);border-radius:10px;padding:16px;cursor:pointer" onclick="openModulo(1)">
+        <div style="font-size:32px">⚖️</div>
+        <div>
+          <div style="font-weight:500;margin-bottom:4px">${proxima}</div>
+          <div style="font-size:13px;color:var(--muted)">1h 50min • Aula 5 de 12</div>
+        </div>
+        <div style="margin-left:auto;background:var(--accent);color:#000;border-radius:8px;padding:8px 16px;font-weight:600;font-size:13px">Assistir</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Seus módulos</div>
+      <div class="modules-grid">
+        ${DATA.modulos.map(m => `
+          <div class="module-card" onclick="openModulo(${m.id})">
+            <div class="module-thumb" style="background:${m.cor}18">${m.icon}</div>
+            <div class="module-body">
+              <div class="module-name">${m.nome}</div>
+              <div class="module-meta">${m.concluidas}/${m.aulas} aulas concluídas</div>
+              <div class="progress-bar"><div class="progress-fill" style="width:${Math.round(m.concluidas/m.aulas*100)}%;background:${m.cor}"></div></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ── ALUNO: MÓDULOS ──
+function renderAlunoModulos() {
+  return `
+    <div class="page-title">Módulos</div>
+    <div class="page-sub">Selecione um módulo para acessar as aulas</div>
+    <div class="modules-grid" id="modulos-grid">
+      ${DATA.modulos.map(m => `
+        <div class="module-card" data-id="${m.id}">
+          <div class="module-thumb" style="background:${m.cor}18">${m.icon}</div>
+          <div class="module-body">
+            <div class="module-name">${m.nome}</div>
+            <div class="module-meta">${m.aulas} aulas · ${m.concluidas} concluídas</div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${Math.round(m.concluidas/m.aulas*100)}%;background:${m.cor}"></div></div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function attachModuloClicks() {
+  document.querySelectorAll('[data-id]').forEach(el => {
+    el.addEventListener('click', () => openModulo(+el.dataset.id));
+  });
+}
+
+function openModulo(id) {
+  currentModulo = id;
+  const aulas = DATA.aulas[id] || [];
+  if (aulas.length) {
+    currentAula = aulas[0];
+    navigate('aluno-player');
+  }
+}
+
+// ── ALUNO: PLAYER ──
+function renderPlayer() {
+  const modulo = DATA.modulos.find(m => m.id === currentModulo);
+  const aulas = DATA.aulas[currentModulo] || [];
+  const aula = currentAula || aulas[0];
+  const ytId = aula.ytId;
+
+  return `
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:24px">
+      <div>
+        <div style="margin-bottom:12px;display:flex;align-items:center;gap:8px">
+          <button class="btn-sm ghost" onclick="navigate('aluno-modulos')" style="padding:6px 12px">← Voltar</button>
+          <span style="color:var(--muted);font-size:13px">${modulo ? modulo.icon + ' ' + modulo.nome : ''}</span>
+        </div>
+        <div class="player-wrap">
+          <iframe id="yt-player"
+            src="https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1&controls=1"
+            frameborder="0"
+            allow="autoplay; encrypted-media"
+            allowfullscreen>
+          </iframe>
+          <div class="player-overlay" id="player-overlay"></div>
+        </div>
+        <div style="margin-bottom:8px">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;margin-bottom:4px">${aula.titulo}</div>
+          <div style="font-size:13px;color:var(--muted)">${modulo ? modulo.nome : ''} · ${aula.dur}</div>
+        </div>
+        ${aula.pdf ? `
+          <a class="pdf-btn" href="#" onclick="alert('Abrindo material em PDF...')">
+            📄 Baixar material da aula
+          </a>
+        ` : ''}
+      </div>
+      <div>
+        <div class="card-title" style="font-family:'Syne',sans-serif;margin-bottom:12px">Aulas do módulo</div>
+        <div class="lesson-list">
+          ${aulas.map((a, i) => `
+            <div class="lesson-item ${a.id === aula.id ? 'playing' : ''}" onclick="switchAula(${currentModulo},${a.id})">
+              <div class="lesson-num ${a.feita ? 'done' : ''}">${a.feita ? '✓' : i+1}</div>
+              <div class="lesson-info">
+                <div class="title">${a.titulo}</div>
+                <div class="dur">${a.dur}</div>
+              </div>
+              ${a.pdf ? `<span style="font-size:16px" title="Tem material">📄</span>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function switchAula(moduloId, aulaId) {
+  const aulas = DATA.aulas[moduloId] || [];
+  currentAula = aulas.find(a => a.id === aulaId);
+  navigate('aluno-player');
+}
+
+// ── ALUNO: AGENDA ──
+function renderAgenda() {
+  const eventos = [
+    { dia: 'Seg 26/05', hora: '19h00', titulo: 'Direito Constitucional — AO VIVO', tipo: 'live' },
+    { dia: 'Qua 28/05', hora: '19h00', titulo: 'Direito Administrativo — AO VIVO', tipo: 'live' },
+    { dia: 'Sex 30/05', hora: '19h00', titulo: 'Língua Portuguesa — AO VIVO', tipo: 'live' },
+    { dia: 'Seg 02/06', hora: '19h00', titulo: 'Matemática — AO VIVO', tipo: 'live' },
+  ];
+  return `
+    <div class="page-title">Agenda de aulas</div>
+    <div class="page-sub">Próximas transmissões ao vivo</div>
+    <div class="card">
+      ${eventos.map(e => `
+        <div style="display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid var(--border)">
+          <div style="background:rgba(245,166,35,.1);border-radius:8px;padding:8px 14px;text-align:center;min-width:80px">
+            <div style="font-size:11px;color:var(--muted)">${e.dia.split(' ')[0]}</div>
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px">${e.dia.split(' ')[1]}</div>
+          </div>
+          <div>
+            <div style="font-weight:500;margin-bottom:2px">${e.titulo}</div>
+            <div style="font-size:13px;color:var(--muted)">🕐 ${e.hora} • Ao vivo no YouTube</div>
+          </div>
+          <span class="badge red" style="margin-left:auto">🔴 AO VIVO</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// ── ADMIN: DASHBOARD ──
+function renderAdminDash() {
+  const totalAlunos = DATA.alunos.length;
+  const ativos = DATA.alunos.filter(a => a.status === 'Ativo').length;
+  const totalAulas = Object.values(DATA.aulas).flat().length;
+  return `
+    <div class="page-title">Dashboard</div>
+    <div class="page-sub">Visão geral da plataforma</div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">Total de alunos</div><div class="stat-val">${totalAlunos}</div></div>
+      <div class="stat-card"><div class="stat-label">Alunos ativos</div><div class="stat-val green">${ativos}</div></div>
+      <div class="stat-card"><div class="stat-label">Turmas</div><div class="stat-val orange">${DATA.turmas.length}</div></div>
+      <div class="stat-card"><div class="stat-label">Aulas cadastradas</div><div class="stat-val">${totalAulas}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div class="card">
+        <div class="card-title">Alunos recentes</div>
+        <table>
+          <thead><tr><th>Nome</th><th>Turma</th><th>Progresso</th></tr></thead>
+          <tbody>
+            ${DATA.alunos.slice(0,5).map(a => `
+              <tr>
+                <td>${a.nome}</td>
+                <td><span style="font-size:12px;color:var(--muted)">${a.turma}</span></td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div style="flex:1;height:4px;background:var(--surface2);border-radius:2px">
+                      <div style="width:${a.progresso}%;height:100%;background:var(--accent);border-radius:2px"></div>
+                    </div>
+                    <span style="font-size:12px;color:var(--muted)">${a.progresso}%</span>
+                  </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title">Módulos</div>
+        ${DATA.modulos.map(m => `
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:20px">${m.icon}</span>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:500">${m.nome}</div>
+              <div style="font-size:11px;color:var(--muted)">${DATA.aulas[m.id] ? DATA.aulas[m.id].length : 0} aulas cadastradas</div>
+            </div>
+            <span class="badge orange">${m.aulas} aulas</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ── ADMIN: TURMAS ──
+function renderAdminTurmas() {
+  return `
+    <div class="page-title">Turmas</div>
+    <div class="page-sub">Gerencie as turmas do cursinho</div>
+    <div class="turma-grid">
+      ${DATA.turmas.map(t => `
+        <div class="turma-card">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:4px">
+            <div class="turma-name">${t.nome}</div>
+            <span class="badge ${t.ativa ? 'green' : 'red'}">${t.ativa ? 'Ativa' : 'Encerrada'}</span>
+          </div>
+          <div class="turma-meta">Início: ${t.inicio} · Foco: ${t.concurso}</div>
+          <div class="turma-stat"><span>Alunos</span><strong>${t.alunos}</strong></div>
+          <div class="turma-stat"><span>Módulos</span><strong>${DATA.modulos.length}</strong></div>
+          <div class="turma-stat"><span>Aulas</span><strong>${Object.values(DATA.aulas).flat().length}</strong></div>
+          <div style="margin-top:14px;display:flex;gap:8px">
+            <button class="btn-sm ghost">Ver alunos</button>
+            <button class="btn-sm ghost">Editar</button>
+          </div>
+        </div>
+      `).join('')}
+      <div class="turma-card" style="border-style:dashed;display:flex;align-items:center;justify-content:center;cursor:pointer;min-height:180px" onclick="alert('Em breve: criar nova turma')">
+        <div style="text-align:center;color:var(--muted)">
+          <div style="font-size:32px;margin-bottom:8px">+</div>
+          <div style="font-size:14px">Nova turma</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ── ADMIN: ALUNOS ──
+function renderAdminAlunos() {
+  return `
+    <div class="section-header">
+      <div>
+        <div class="page-title">Alunos</div>
+        <div class="page-sub">Cadastro e gestão de alunos</div>
+      </div>
+      <button class="btn-sm primary" onclick="openModal('modal-aluno')">+ Cadastrar aluno</button>
+    </div>
+    <div id="aluno-alert"></div>
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>E-mail</th>
+            <th>Turma</th>
+            <th>Status</th>
+            <th>Progresso</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="alunos-tbody">
+          ${renderAlunosRows()}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderAlunosRows() {
+  return DATA.alunos.map(a => `
+    <tr>
+      <td><strong>${a.nome}</strong></td>
+      <td style="color:var(--muted)">${a.email}</td>
+      <td>${a.turma}</td>
+      <td><span class="badge ${a.status === 'Ativo' ? 'green' : 'red'}">${a.status}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:80px;height:4px;background:var(--surface2);border-radius:2px">
+            <div style="width:${a.progresso}%;height:100%;background:var(--accent);border-radius:2px"></div>
+          </div>
+          <span style="font-size:12px">${a.progresso}%</span>
+        </div>
+      </td>
+      <td>
+        <div class="action-bar">
+          <button class="btn-sm ghost" style="padding:5px 10px" onclick="toggleAluno(${a.id})">${a.status === 'Ativo' ? 'Desativar' : 'Ativar'}</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function toggleAluno(id) {
+  const a = DATA.alunos.find(x => x.id === id);
+  a.status = a.status === 'Ativo' ? 'Inativo' : 'Ativo';
+  const tbody = document.getElementById('alunos-tbody');
+  if (tbody) tbody.innerHTML = renderAlunosRows();
+}
+
+// ── ADMIN: AULAS ──
+function renderAdminAulas() {
+  const todasAulas = Object.entries(DATA.aulas).flatMap(([mid, aulas]) => {
+    const modulo = DATA.modulos.find(m => m.id === +mid);
+    return aulas.map(a => ({ ...a, modulo: modulo ? modulo.nome : '' }));
+  });
+  return `
+    <div class="section-header">
+      <div>
+        <div class="page-title">Aulas</div>
+        <div class="page-sub">Gerencie os links e materiais das aulas</div>
+      </div>
+      <button class="btn-sm primary" onclick="openModal('modal-aula')">+ Nova aula</button>
+    </div>
+    <div id="aula-alert"></div>
+    <div class="card">
+      <table>
+        <thead>
+          <tr><th>Título</th><th>Módulo</th><th>Duração</th><th>PDF</th><th>YouTube</th></tr>
+        </thead>
+        <tbody>
+          ${todasAulas.map(a => `
+            <tr>
+              <td><strong>${a.titulo}</strong></td>
+              <td style="color:var(--muted);font-size:13px">${a.modulo}</td>
+              <td>${a.dur}</td>
+              <td>${a.pdf ? '<span class="badge green">✓ Sim</span>' : '<span class="badge red">—</span>'}</td>
+              <td><span class="badge blue">🔗 Vinculado</span></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+// ── MODALS ──
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function salvarAula() {
+  const titulo = document.getElementById('aula-titulo').value;
+  if (!titulo) return;
+  const alert = document.getElementById('aula-alert');
+  closeModal('modal-aula');
+  if (alert) {
+    alert.innerHTML = `<div class="alert success">✓ Aula "${titulo}" cadastrada com sucesso!</div>`;
+    setTimeout(() => { if(alert) alert.innerHTML = ''; }, 3000);
+  }
+}
+
+function salvarAluno() {
+  const nome = document.getElementById('aluno-nome').value;
+  const email = document.getElementById('aluno-email').value;
+  const turma = document.getElementById('aluno-turma').value;
+  if (!nome || !email) return;
+  DATA.alunos.push({ id: Date.now(), nome, email, turma, status: 'Ativo', progresso: 0 });
+  closeModal('modal-aluno');
+  const alert = document.getElementById('aluno-alert');
+  const tbody = document.getElementById('alunos-tbody');
+  if (tbody) tbody.innerHTML = renderAlunosRows();
+  if (alert) {
+    alert.innerHTML = `<div class="alert success">✓ Aluno "${nome}" cadastrado com sucesso!</div>`;
+    setTimeout(() => { if(alert) alert.innerHTML = ''; }, 3000);
+  }
+}
+
+// Fechar modais clicando fora
+document.querySelectorAll('.modal-backdrop').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// Proteção básica: desabilitar menu de contexto na área do player
+document.addEventListener('contextmenu', e => {
+  if (e.target.closest('#yt-player') || e.target.closest('.player-wrap')) e.preventDefault();
+});
+</script>
+</body>
+</html>
