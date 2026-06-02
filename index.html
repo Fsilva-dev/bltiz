@@ -180,13 +180,14 @@
     pointer-events: all; cursor: default;
     background: rgba(255,0,0,0.4); /* VERMELHO = bloqueado */
   }
-  /* Superior direito — LIVRE (áudio/CC/config são permitidos) */
+  /* Superior direito — setinha fullscreen BLOQUEADA, CC/áudio/config LIVRES */
   .player-block-tr {
     position: absolute; top: 0; right: 0;
     width: 20%; height: 14%; z-index: 11;
-    pointer-events: none;
+    pointer-events: none; /* CC/áudio/config passam */
     background: rgba(0,255,0,0.4); /* VERDE = livre */
   }
+
   /* Inferior esquerdo — BLOQUEADO (compartilhar) */
   .player-block-bl {
     position: absolute; bottom: 0; left: 0;
@@ -207,6 +208,31 @@
     background: rgba(0,0,0,.55); color: rgba(255,255,255,.45);
     font-size: 10px; padding: 3px 8px; border-radius: 4px;
     pointer-events: none; letter-spacing: .02em;
+  }
+
+  /* Botão fullscreen customizado */
+  .player-fullscreen-btn {
+    position: absolute; bottom: 18%; left: 1%; z-index: 12;
+    background: rgba(0,0,0,.6); color: rgba(255,255,255,.8);
+    border: none; border-radius: 4px; padding: 4px 10px;
+    font-size: 13px; cursor: pointer;
+    pointer-events: all;
+    transition: background .2s;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .player-fullscreen-btn:hover { background: rgba(0,0,0,.85); color: #fff; }
+
+  /* Estado fullscreen customizado do container */
+  .player-wrap.is-fullscreen {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    padding-bottom: 0 !important;
+    border-radius: 0 !important;
+    z-index: 9999 !important;
+    background: #000;
+    margin: 0 !important;
   }
   .lesson-list { display: flex; flex-direction: column; gap: 8px; }
   .lesson-item {
@@ -641,6 +667,7 @@ function renderPlayer() {
             <div class="player-block-bl"></div>
             <div class="player-block-br"></div>
             <div class="player-watermark">Direitos reservados — Blitz Concursos</div>
+            <button class="player-fullscreen-btn" id="fs-btn" onclick="togglePlayerFullscreen()">⛶ Tela cheia</button>
           </div>
         </div>
         <div style="margin-bottom:8px">
@@ -927,6 +954,36 @@ document.querySelectorAll('.modal-backdrop').forEach(m => {
   m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
 });
 
+// Fullscreen customizado — expande o container inteiro (overlays vão junto)
+function togglePlayerFullscreen() {
+  const wrap = document.querySelector('.player-wrap');
+  const btn  = document.getElementById('fs-btn');
+  const isFs = wrap.classList.contains('is-fullscreen');
+
+  if (isFs) {
+    wrap.classList.remove('is-fullscreen');
+    btn.textContent = '⛶ Tela cheia';
+    document.body.style.overflow = '';
+  } else {
+    wrap.classList.add('is-fullscreen');
+    btn.textContent = '✕ Sair';
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+// Fechar fullscreen com ESC
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const wrap = document.querySelector('.player-wrap');
+    const btn  = document.getElementById('fs-btn');
+    if (wrap && wrap.classList.contains('is-fullscreen')) {
+      wrap.classList.remove('is-fullscreen');
+      if (btn) btn.textContent = '⛶ Tela cheia';
+      document.body.style.overflow = '';
+    }
+  }
+});
+
 // Proteção: bloqueia clique direito em toda a área do player
 document.addEventListener('contextmenu', e => {
   if (e.target.closest('.player-wrap')) e.preventDefault();
@@ -934,7 +991,7 @@ document.addEventListener('contextmenu', e => {
 
 // Bloqueia os blocos de overlay de abrir links ao clicar
 document.addEventListener('click', e => {
-  const blocked = e.target.closest('.player-block-tl, .player-block-tr, .player-block-bl, .player-block-br');
+  const blocked = e.target.closest('.player-block-tl, .player-block-bl, .player-block-br');
   if (blocked) { e.preventDefault(); e.stopPropagation(); }
 });
 </script>
